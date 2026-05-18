@@ -1,9 +1,0 @@
-# Ignora le cartelle di build
-build/
-out/
-bin/
-
-# Ignora file di sistema e IDE
-.vscode/
-.vs/
-.idea/
