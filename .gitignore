@@ -1,6 +1,5 @@
-build
-out
-.cache
-.idea
-.vs
-.vscode
+build/
+bin/
+CMakeCache.txt
+CMakeFiles/
+.vscode/

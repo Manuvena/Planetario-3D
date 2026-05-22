@@ -12,8 +12,15 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(Tappa01 Cartella-Tappa01/main.cpp)
-target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(Tappa01 PRIVATE SFML::Graphics SFML::Window SFML::System)
+# --- TAPPA 01: Setup Finestra ---
+add_executable(Planetario3D main.cpp)
+target_compile_features(Planetario3D PRIVATE cxx_std_20)
+target_link_libraries(Planetario3D PRIVATE SFML::Graphics SFML::Window SFML::System)
+
+# --- TAPPA 02: Inizializzazione OpenGL e GLAD ---
+add_executable(Tappa02 Cartella-Tappa02/main.cpp)
+target_include_directories(Tappa02 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(Tappa02 PRIVATE cxx_std_20)
+target_link_libraries(Tappa02 PRIVATE SFML::Window SFML::System)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)
