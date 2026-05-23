@@ -1,50 +1,38 @@
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>  // Sempre per primo!
+#define GLAD_GL_IMPLEMENTATION //main genera il codice di GLAD
+#include <glad/gl.h>
 #include <SFML/Window.hpp>
 #include <iostream>
 
 int main() {
-    // 1. Configurazione del contesto OpenGL 4.1 Core
-    sf::ContextSettings settings;
-    settings.depthBits = 24;
-    settings.stencilBits = 8;
-    settings.majorVersion = 4;
-    settings.minorVersion = 1;
-    settings.attributeFlags = sf::ContextSettings::Core;
+    sf::ContextSettings settings; //oggetto che viene mandato a GPU che serve a definire le proprietà HW da attivare
+    settings.depthBits= 24; //z-buffer, 24b per ogni px per calcolare la distanza degli oggetti da telecamera
+    //per impostare versione principale e secondaria di OpenGL
+    settings.majorVersion= 4;
+    settings.minorVersion= 1;
+    //impostiamo flag del contesto sul profilo Core invece che sul vecchio Compatibility, bisogna definire gli shader
+    settings.attributeFlags= sf::ContextSettings::Core;
 
-    // CORREZIONE SFML 3: Usiamo sf::State::Windowed al posto di sf::Style::Default
+    //istanzia oggetto window e chiede a S.O. di aprire finestra 800x600 px, con barra titolo e bordi, passando struttura settings
     sf::Window window(sf::VideoMode({800, 600}), "Planetario 3D - Tappa 02", sf::State::Windowed, settings);
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(60); //limitiamo i frame per evitare che il while giri a massima velocità
 
-    // CORREZIONE GLAD 2: Usiamo gladLoadGL e GLADloadfunc
-    if (!gladLoadGL(reinterpret_cast<GLADloadfunc>(sf::Context::getFunction))) {
-        std::cerr << "Errore: Impossibile inizializzare GLAD!" << std::endl;
+    //getFunction serve a chiedere a S.O. indirizzo di memoria driver GPU, GLAD li prende e collega al codice
+    if(!gladLoadGL(reinterpret_cast<GLADloadfunc>(sf::Context::getFunction))) {
+        std::cerr << "errore: impossibile inizializzare GLAD" << std::endl;
         return -1;
     }
 
-    std::cout << "OpenGL Versione caricata con successo: " << glGetString(GL_VERSION) << std::endl;
+    glClearColor(0.05f, 0.05f, 0.15f, 1.0f); //modifichiamo registro di memoria della GPU cambiando il colore di pulizia schermo
 
-    // Colore di pulizia dello schermo (Blu notte)
-    glClearColor(0.05f, 0.05f, 0.15f, 1.0f);
-
-    // 3. Event Loop Principale
-    while (window.isOpen()) {
-        while (const std::optional<sf::Event> event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
+    while(window.isOpen()) {
+        while(const std::optional<sf::Event> event= window.pollEvent()) {
+            if(event->is<sf::Event::Closed>())
                 window.close();
-            }
-            
-            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-                if (keyPressed->code == sf::Keyboard::Key::Escape) {
-                    window.close();
-                }
-            }
         }
 
-        // 4. Rendering nativo OpenGL
+        //CPU ordina a GPU di pulire il back buffer e azzerare lo z-buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Scambio dei buffer
         window.display();
     }
 
