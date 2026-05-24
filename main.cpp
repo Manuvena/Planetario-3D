@@ -6,6 +6,8 @@
 int main() {
     sf::ContextSettings settings; //oggetto che viene mandato a GPU che serve a definire le proprietà HW da attivare
     settings.depthBits= 24; //z-buffer, 24b per ogni px per calcolare la distanza degli oggetti da telecamera
+    settings.stencilBits= 8;
+    settings.antiAliasingLevel= 4;
     //per impostare versione principale e secondaria di OpenGL
     settings.majorVersion= 4;
     settings.minorVersion= 1;
@@ -14,7 +16,7 @@ int main() {
 
     //istanzia oggetto window e chiede a S.O. di aprire finestra 800x600 px, con barra titolo e bordi, passando struttura settings
     sf::Window window(sf::VideoMode({800, 600}), "Planetario 3D - Tappa 02", sf::State::Windowed, settings);
-    window.setFramerateLimit(60); //limitiamo i frame per evitare che il while giri a massima velocità
+    window.setVerticalSyncEnabled(true);
 
     //getFunction serve a chiedere a S.O. indirizzo di memoria driver GPU, GLAD li prende e collega al codice
     if(!gladLoadGL(reinterpret_cast<GLADloadfunc>(sf::Context::getFunction))) {
