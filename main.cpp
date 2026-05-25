@@ -19,10 +19,8 @@ int main() {
     window.setVerticalSyncEnabled(true); //abilita il V-Sync per far si hce programma segua il refresh rate del monitor
 
     //getFunction serve a chiedere a S.O. indirizzo di memoria driver GPU, GLAD li prende e collega al codice
-    if(!gladLoadGL(reinterpret_cast<GLADloadfunc>(sf::Context::getFunction))) {
+    if(!gladLoadGL(reinterpret_cast<GLADloadfunc>(sf::Context::getFunction)))
         std::cerr << "errore: impossibile inizializzare GLAD" << std::endl;
-        return -1;
-    }
 
     glClearColor(0.05f, 0.05f, 0.15f, 1.0f); //modifichiamo registro di memoria della GPU cambiando il colore di pulizia schermo
     glEnable(GL_DEPTH_TEST); //abilitiamo lo z-buffer
