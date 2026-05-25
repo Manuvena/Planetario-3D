@@ -26,7 +26,7 @@ int main() {
     glEnable(GL_DEPTH_TEST); //abilitiamo lo z-buffer
 
     while(window.isOpen()) {
-        while(const std::optional<sf::Event> event= window.pollEvent()) {
+        while(const std::optional event= window.pollEvent()) {
             if(event->is<sf::Event::Closed>())
                 window.close();
         }
@@ -36,6 +36,4 @@ int main() {
 
         window.display();
     }
-
-    return 0;
 }
