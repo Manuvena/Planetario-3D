@@ -12,10 +12,17 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
+#TAPPA01
+add_executable(tappa01 tappa01.cpp)
+target_include_directories(tappa01 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(tappa01 PRIVATE cxx_std_20)
+# Tappa 01 ha bisogno anche di Graphics per disegnare il cerchio
+target_link_libraries(tappa01 PRIVATE SFML::Graphics SFML::Window SFML::System)
 
-add_executable(Planetario3D main.cpp)
-target_include_directories(Planetario3D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_features(Planetario3D PRIVATE cxx_std_20)
-target_link_libraries(Planetario3D PRIVATE SFML::Window SFML::System)
+#TAPPA02
+add_executable(tappa02 tappa02.cpp)
+target_include_directories(tappa02 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(tappa02 PRIVATE cxx_std_20)
+target_link_libraries(tappa02 PRIVATE SFML::Window SFML::System)
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tappa02)
