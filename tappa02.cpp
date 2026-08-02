@@ -6,8 +6,6 @@
 int main() {
     sf::ContextSettings settings; //oggetto che viene mandato a GPU che serve a definire le proprietà HW da attivare
     settings.depthBits= 24; //z-buffer, 24b per ogni px per calcolare la distanza degli oggetti da telecamera
-    settings.stencilBits= 8;
-    settings.antiAliasingLevel= 4; //tecnica MSAA per evitare aliasing
     //per impostare versione principale e secondaria di OpenGL
     settings.majorVersion= 4;
     settings.minorVersion= 1;
@@ -19,8 +17,7 @@ int main() {
     window.setVerticalSyncEnabled(true); //abilita il V-Sync per far si hce programma segua il refresh rate del monitor
 
     //getFunction serve a chiedere a S.O. indirizzo di memoria driver GPU, GLAD li prende e collega al codice
-    if(!gladLoadGL(reinterpret_cast<GLADloadfunc>(sf::Context::getFunction)))
-        std::cerr << "errore: impossibile inizializzare GLAD" << std::endl;
+    gladLoadGL(sf::Context::getFunction);
 
     glClearColor(0.05f, 0.05f, 0.15f, 1.0f); //modifichiamo registro di memoria della GPU cambiando il colore di pulizia schermo
     glEnable(GL_DEPTH_TEST); //abilitiamo lo z-buffer

@@ -25,4 +25,15 @@ target_include_directories(tappa02 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(tappa02 PRIVATE cxx_std_20)
 target_link_libraries(tappa02 PRIVATE SFML::Window SFML::System)
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tappa02)
+#TAPPA 03
+add_executable(tappa03 tappa03.cpp)
+target_include_directories(tappa03 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(tappa03 PRIVATE cxx_std_20)
+target_link_libraries(tappa03 PRIVATE SFML::Window SFML::System)
+
+#TAPPA 04
+add_executable(tappa04 tappa04.cpp)
+target_include_directories(tappa04 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_features(tappa04 PRIVATE cxx_std_20)
+target_link_libraries(tappa04 PRIVATE SFML::Window SFML::System)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/cubo.off DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
