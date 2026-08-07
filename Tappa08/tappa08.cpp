@@ -72,7 +72,7 @@ public:
     sf::Window* window;
     Setup() {
         sf::ContextSettings settings;
-        settings.depthBits=32;
+        settings.depthBits=24;
         settings.stencilBits=8;
         settings.antiAliasingLevel=4;
         settings.attributeFlags=sf::ContextSettings::Attribute::Core;

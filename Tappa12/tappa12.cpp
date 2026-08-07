@@ -15,7 +15,7 @@
 
 //funzionidisupporto
 void generaSferaOFF() {
-    std::ofstream out("sfera.off");
+    std::ofstream out("../Risorse/sfera.off");
     int parallels=40, meridians=40;
     int num_vertices=parallels*meridians+2;
     int num_faces=parallels*meridians*2;
@@ -130,7 +130,7 @@ public:
     sf::Window* window;
     Setup() {
         sf::ContextSettings settings;
-        settings.depthBits=32;
+        settings.depthBits=24;
         settings.stencilBits=8;
         settings.antiAliasingLevel=4;
         settings.attributeFlags=sf::ContextSettings::Attribute::Core;
@@ -231,14 +231,14 @@ public:
         is_star_loc=glGetUniformLocation(s.program, "is_star");
 
         t_sole=caricaTexture("../Risorse/sole.jpg");
-        t_merc=caricaTexture("../Risorse/mercurio.jpg");
+        t_merc=caricaTexture("../Risorse/mercurio.jpeg");
         t_ven=caricaTexture("../Risorse/venere.jpg");
         t_ter=caricaTexture("../Risorse/terra.jpg");
         t_luna=caricaTexture("../Risorse/luna.jpg");
         t_mar=caricaTexture("../Risorse/marte.jpg");
         t_gio=caricaTexture("../Risorse/giove.jpg");
         t_sat=caricaTexture("../Risorse/saturno.jpg");
-        t_ura=caricaTexture("../Risorse/urano.jpg");
+        t_ura=caricaTexture("../Risorse/urano.jpeg");
         t_net=caricaTexture("../Risorse/nettuno.jpg");
 
         mesh_base_norm=scaling(1.0f/mesh.extent)*translation(-mesh.center);
@@ -409,7 +409,7 @@ int main(int argc, char** argv) {
 
     sh.compile_attach_link(&vs, &fs);
     sh.use();
-    Scene sc("sfera.off", sh, *s.window);
+    Scene sc("../Risorse/sfera.off", sh, *s.window);
 
     glEnable(GL_DEPTH_TEST);
     //abilitaformapunti
