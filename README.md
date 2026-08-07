@@ -15,7 +15,7 @@ Per compilare il progetto sono necessari:
 - glad
 - GLM
 
-SFML viene gestita tramite CMake. Le cartelle `glad`, `glm`, `include` e `Risorse` fanno parte del progetto e devono rimanere nella cartella principale.
+SFML viene scaricata e configurata tramite CMake. Le cartelle `glad`, `glm`, `include` e `Risorse` fanno parte del progetto e devono rimanere nella cartella principale.
 
 ## Struttura del progetto
 
@@ -47,3 +47,55 @@ Dalla cartella principale del progetto eseguire:
 ```bash
 cmake -S . -B build
 cmake --build build
+```
+
+Questi comandi compilano tutte le tappe del progetto con un'unica build.
+
+Gli eseguibili vengono generati nella cartella:
+
+```bash
+build/bin
+```
+
+Durante la compilazione, CMake copia automaticamente la cartella `Risorse/` dentro `build/Risorse`, in modo che gli eseguibili possano caricare correttamente immagini, texture e file `.off`.
+
+## Esecuzione
+
+Dopo aver compilato il progetto, entrare nella cartella degli eseguibili.
+
+Dalla cartella principale del progetto:
+
+```bash
+cd build/bin
+```
+
+Per lanciare la tappa finale su Linux:
+
+```bash
+./tappa12
+```
+
+Per lanciare la tappa finale su Windows:
+
+```bash
+tappa12.exe
+```
+Le altre tappe possono essere lanciate nello stesso modo.
+
+Gli eseguibili devono essere lanciati dalla cartella `build/bin`, perché i percorsi delle risorse nel codice sono relativi a questa posizione.
+
+In particolare, le risorse vengono copiate da CMake in `build/Risorse` e vengono caricate dagli eseguibili tramite percorsi relativi del tipo:
+
+```text
+../Risorse/nomefile
+```
+
+## Comandi dell'applicazione
+
+Nella tappa finale sono disponibili i seguenti comandi:
+
+- Mouse sinistro premuto + movimento: ruota la camera attorno alla scena.
+- Barra spaziatrice: mette in pausa o riprende la simulazione.
+- Freccia su: aumenta la velocità della simulazione.
+- Freccia giù: diminuisce la velocità della simulazione.
+- Chiusura della finestra: termina l'applicazione.
