@@ -19,10 +19,8 @@ void generaSferaOFF() {
     int parallels=40, meridians=40;
     int num_vertices=parallels*meridians+2;
     int num_faces=parallels*meridians*2;
-    
     out<<"OFF\n"<<num_vertices<<" "<<num_faces<<" 0\n";
     out<<"0.0 -1.0 0.0\n";
-    
     for(int i=1; i<=parallels; i++) {
         float theta=3.14159265359f*i/(parallels+1.0f);
         for(int j=0; j<meridians; j++) {
@@ -30,13 +28,10 @@ void generaSferaOFF() {
             out<<(std::sin(theta)*std::cos(phi))<<" "<<-std::cos(theta)<<" "<<(std::sin(theta)*std::sin(phi))<<"\n";
         }
     }
-    
     out<<"0.0 1.0 0.0\n";
-    
     for(int j=0; j<meridians; j++) {
         out<<"3 0 "<<(1+(j+1)%meridians)<<" "<<(1+j)<<"\n";
     }
-    
     for(int i=0; i<parallels-1; i++) {
         for(int j=0; j<meridians; j++) {
             int next_j=(j+1)%meridians;
@@ -46,12 +41,10 @@ void generaSferaOFF() {
             out<<"3 "<<v1<<" "<<v2<<" "<<v3<<"\n";
         }
     }
-    
     int nord=num_vertices-1, start=1+(parallels-1)*meridians;
     for(int j=0; j<meridians; j++) {
         out<<"3 "<<nord<<" "<<(start+j)<<" "<<(start+(j+1)%meridians)<<"\n";
     }
-    
     out.close();
 }
 
@@ -59,16 +52,14 @@ void generaSferaOFF() {
 GLuint caricaTexture(const std::string& path) {
     sf::Image img;
     if(!img.loadFromFile(path)) {
-        //texturebiancadisicurezza
-        img.resize({1, 1}, sf::Color::White); 
+        img.resize({1, 1}, sf::Color::White);
     }
-    img.flipVertically(); 
-    
+    img.flipVertically();
     GLuint tex_id;
     glGenTextures(1, &tex_id);
     glBindTexture(GL_TEXTURE_2D, tex_id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.getSize().x, img.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.getPixelsPtr());
-    glGenerateMipmap(GL_TEXTURE_2D); 
+    glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     return tex_id;
@@ -79,7 +70,7 @@ class GPUOrbit {
 public:
     GLuint vao, vbo;
     int point_count;
-    GPUOrbit(float radius, int segments=100) {
+    GPUOrbit(float radius, int segments=120) {
         std::vector<float> vertices;
         for(int i=0; i<=segments; ++i) {
             float theta=2.0f*3.14159265359f*i/segments;
@@ -107,13 +98,13 @@ class GPUStars {
 public:
     GLuint vao, vbo;
     int star_count;
-    GPUStars(int count=600) {
+    GPUStars(int count=1200) {
         std::vector<float> vertices;
         for(int i=0; i<count; ++i) {
             float theta=static_cast<float>(rand())/RAND_MAX*2.0f*3.14159265359f;
             float phi=static_cast<float>(rand())/RAND_MAX*3.14159265359f-3.14159265359f/2.0f;
-            //sfondolontano
-            float r=40.0f+static_cast<float>(rand())/RAND_MAX*20.0f; 
+            //sfondodistante
+            float r=60.0f+static_cast<float>(rand())/RAND_MAX*40.0f;
             vertices.push_back(r*std::cos(phi)*std::cos(theta));
             vertices.push_back(r*std::sin(phi));
             vertices.push_back(r*std::cos(phi)*std::sin(theta));
@@ -129,8 +120,6 @@ public:
     }
     void draw() {
         glBindVertexArray(vao);
-        //rendestellebenvisibili
-        glPointSize(2.0f); 
         glDrawArrays(GL_POINTS, 0, star_count);
     }
 };
@@ -147,7 +136,7 @@ public:
         settings.attributeFlags=sf::ContextSettings::Attribute::Core;
         settings.majorVersion=4;
         settings.minorVersion=1;
-        window=new sf::Window(sf::VideoMode({800, 800}), "Planetario Tappa 11 - Sistema Solare Completo!", sf::Style::Default, sf::State::Windowed, settings);
+        window=new sf::Window(sf::VideoMode({800, 800}), "Planetario Tappa 12 - Con Cielo Stellato!", sf::Style::Default, sf::State::Windowed, settings);
         window->setVerticalSyncEnabled(true);
         if(!window->setActive(true)) {
             exit(1);
@@ -163,23 +152,18 @@ public:
 class Camera {
 public:
     glm::mat4 v, vp;
-    float aspect=1.0f;
-    float phi=30.0f, theta=30.0f, fd=2.0f, od=20.0f;
-    
+    float aspect=1.0f, phi=30.0f, theta=30.0f, fd=2.0f, od=25.0f;
     void drag(float dx, float dy) {
         phi+=dx*0.5f;
         theta=std::clamp(theta+dy*0.5f, -89.0f, 89.0f);
         view_projection();
     }
-    
     void view_projection() {
         glm::mat4 ry=rotation_y(phi);
         glm::mat4 rx=rotation_x(theta);
         glm::mat4 tz=translation(0, 0, -od);
-        float ncp=std::max(0.1f, od-15.0f);
-        float fcp=120.0f;
-        float a=(fcp+ncp)/(ncp-fcp);
-        float b=2.0f*fcp*ncp/(ncp-fcp);
+        float ncp=std::max(0.1f, od-20.0f), fcp=150.0f;
+        float a=(fcp+ncp)/(ncp-fcp), b=2.0f*fcp*ncp/(ncp-fcp);
         glm::mat4 pr=glm::mat4(fd/aspect, 0, 0, 0, 0, fd, 0, 0, 0, 0, a, -1.0, 0, 0, b, 0);
         v=tz*rx*ry;
         vp=pr*v;
@@ -193,7 +177,6 @@ public:
     float extent;
     GLuint vao, vbo, ebo;
     size_t index_count;
-    
     GPUMesh(std::string f) {
         Mesh m(f);
         center=m.center;
@@ -202,48 +185,42 @@ public:
         std::vector<unsigned int> i;
         m.pack4gpu(p, i);
         index_count=i.size();
-        
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, p.size()*sizeof(float), p.data(), GL_STATIC_DRAW);
-        
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
-        
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), 0);
         glEnableVertexAttribArray(0);
-        
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
         glEnableVertexAttribArray(1);
-        
         glGenBuffers(1, &ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, i.size()*sizeof(unsigned int), i.data(), GL_STATIC_DRAW);
     }
-    
     void draw() {
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     }
 };
 
-//scenapianetiorbitestelle
+//scenacompleta
 class Scene {
 public:
-    Camera cam; 
-    GPUMesh mesh; 
+    Camera cam;
+    GPUMesh mesh;
     GPUStars stars;
-    GPUOrbit orb_mercurio, orb_venere, orb_terra, orb_marte, orb_giove, orb_luna;
+    GPUOrbit o_merc, o_ven, o_ter, o_mar, o_gio, o_sat, o_ura, o_net, o_luna;
     glm::mat4 mesh_base_norm;
     sf::Window* win;
     GLint m_loc, vp_loc, light_pos_loc, is_sun_loc, tex_loc, color_loc, is_orbit_loc, is_star_loc;
-    GLuint t_sole, t_mercurio, t_venere, t_terra, t_luna, t_marte, t_giove;
+    GLuint t_sole, t_merc, t_ven, t_ter, t_luna, t_mar, t_gio, t_sat, t_ura, t_net;
 
-    Scene(std::string f, Shaders& s, sf::Window& w) 
-        : mesh(f), stars(800),
-          orb_mercurio(1.8f), orb_venere(2.8f), orb_terra(4.0f), orb_marte(5.5f), orb_giove(7.5f), orb_luna(0.8f),
+    Scene(std::string f, Shaders& s, sf::Window& w)
+        : mesh(f), stars(1200),
+          o_merc(2.0f), o_ven(3.2f), o_ter(4.6f), o_mar(6.2f),
+          o_gio(8.2f), o_sat(10.5f), o_ura(12.8f), o_net(15.0f), o_luna(0.7f),
           win(&w) {
-        
         m_loc=glGetUniformLocation(s.program, "model");
         vp_loc=glGetUniformLocation(s.program, "vp");
         light_pos_loc=glGetUniformLocation(s.program, "light_pos");
@@ -253,127 +230,126 @@ public:
         is_orbit_loc=glGetUniformLocation(s.program, "is_orbit");
         is_star_loc=glGetUniformLocation(s.program, "is_star");
 
-        t_sole=caricaTexture("sole.jpg");
-        t_mercurio=caricaTexture("mercurio.jpeg");
-        t_venere=caricaTexture("venere.jpg");
-        t_terra=caricaTexture("terra.jpg");
-        t_luna=caricaTexture("luna.jpg");
-        t_marte=caricaTexture("marte.jpg");
-        t_giove=caricaTexture("giove.jpg");
-        
+        t_sole=caricaTexture("../Risorse/sole.jpg");
+        t_merc=caricaTexture("../Risorse/mercurio.jpg");
+        t_ven=caricaTexture("../Risorse/venere.jpg");
+        t_ter=caricaTexture("../Risorse/terra.jpg");
+        t_luna=caricaTexture("../Risorse/luna.jpg");
+        t_mar=caricaTexture("../Risorse/marte.jpg");
+        t_gio=caricaTexture("../Risorse/giove.jpg");
+        t_sat=caricaTexture("../Risorse/saturno.jpg");
+        t_ura=caricaTexture("../Risorse/urano.jpg");
+        t_net=caricaTexture("../Risorse/nettuno.jpg");
+
         mesh_base_norm=scaling(1.0f/mesh.extent)*translation(-mesh.center);
         cam.view_projection();
     }
 
-    void draw(float simulated_time) {
+    void draw(float t) {
         cam.aspect=(float)win->getSize().x/(float)win->getSize().y;
         cam.view_projection();
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, &cam.vp[0][0]);
-        
         glUniform3f(light_pos_loc, 0.0f, 0.0f, 0.0f);
         glUniform1i(tex_loc, 0);
         glActiveTexture(GL_TEXTURE0);
 
         glm::mat4 pos_sole=translation(0.0f, 0.0f, 0.0f);
 
-        //disegnostellesfondo
+        //stelledisfondo
         glUniform1i(is_star_loc, 1);
-        glm::mat4 mm_stars=translation(0.0f, 0.0f, 0.0f);
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_stars[0][0]);
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]);
         stars.draw();
         glUniform1i(is_star_loc, 0);
 
-        //disegnoorbite
+        //orbitegeometriche
         glUniform1i(is_orbit_loc, 1);
-        //grigioblutenue
-        glUniform4f(color_loc, 0.25f, 0.25f, 0.35f, 1.0f);
+        glUniform4f(color_loc, 0.2f, 0.25f, 0.35f, 1.0f);
 
-        //orbitamercurio
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]);
-        orb_mercurio.draw();
-        
-        //orbitavenere
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]);
-        orb_venere.draw();
-        
-        //orbitaterra
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]);
-        orb_terra.draw();
-        
-        //orbitamarte
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]);
-        orb_marte.draw();
-        
-        //orbitagiove
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]);
-        orb_giove.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_merc.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_ven.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_ter.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_mar.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_gio.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_sat.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_ura.draw();
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &pos_sole[0][0]); o_net.draw();
 
-        //orbitaluna
-        glm::mat4 c_terra=pos_sole*rotation_y(simulated_time*30.0f)*translation(4.0f, 0.0f, 0.0f);
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &c_terra[0][0]); 
-        orb_luna.draw();
+        glm::mat4 c_ter=pos_sole*rotation_y(t*25.0f)*translation(4.6f, 0.0f, 0.0f);
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &c_ter[0][0]);
+        o_luna.draw();
 
         glUniform1i(is_orbit_loc, 0);
 
-        //sole
-        glm::mat4 mm_sole=pos_sole*rotation_y(simulated_time*10.0f)*scaling(1.2f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_sole[0][0]);
+        //soleepianeti
+        glm::mat4 m_sole=pos_sole*rotation_y(t*10.0f)*scaling(1.4f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_sole[0][0]);
         glUniform1i(is_sun_loc, 1);
         glBindTexture(GL_TEXTURE_2D, t_sole);
         mesh.draw();
 
-        //mercurio
-        glm::mat4 mm_merc=pos_sole*rotation_y(simulated_time*80.0f)*translation(1.8f, 0.0f, 0.0f)*rotation_y(simulated_time*50.0f)*scaling(0.12f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_merc[0][0]);
+        glm::mat4 m_merc=pos_sole*rotation_y(t*90.0f)*translation(2.0f, 0.0f, 0.0f)*rotation_y(t*40.0f)*scaling(0.1f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_merc[0][0]);
         glUniform1i(is_sun_loc, 0);
-        glBindTexture(GL_TEXTURE_2D, t_mercurio);
+        glBindTexture(GL_TEXTURE_2D, t_merc);
         mesh.draw();
 
-        //venere
-        glm::mat4 mm_ven=pos_sole*rotation_y(simulated_time*50.0f)*translation(2.8f, 0.0f, 0.0f)*rotation_y(simulated_time*30.0f)*scaling(0.22f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_ven[0][0]);
+        glm::mat4 m_ven=pos_sole*rotation_y(t*60.0f)*translation(3.2f, 0.0f, 0.0f)*rotation_y(t*20.0f)*scaling(0.18f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_ven[0][0]);
         glUniform1i(is_sun_loc, 0);
-        glBindTexture(GL_TEXTURE_2D, t_venere);
+        glBindTexture(GL_TEXTURE_2D, t_ven);
         mesh.draw();
 
-        //terra
-        glm::mat4 mm_terra=c_terra*rotation_y(simulated_time*90.0f)*scaling(0.3f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_terra[0][0]);
-        glUniform1i(is_sun_loc, 0); 
-        glBindTexture(GL_TEXTURE_2D, t_terra);
+        glm::mat4 m_ter=c_ter*rotation_y(t*80.0f)*scaling(0.26f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_ter[0][0]);
+        glUniform1i(is_sun_loc, 0);
+        glBindTexture(GL_TEXTURE_2D, t_ter);
         mesh.draw();
 
-        //luna
-        glm::mat4 mm_luna=c_terra*rotation_y(simulated_time*120.0f)*translation(0.8f, 0.0f, 0.0f)*scaling(0.09f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_luna[0][0]);
-        glUniform1i(is_sun_loc, 0); 
+        glm::mat4 m_luna=c_ter*rotation_y(t*110.0f)*translation(0.7f, 0.0f, 0.0f)*scaling(0.08f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_luna[0][0]);
+        glUniform1i(is_sun_loc, 0);
         glBindTexture(GL_TEXTURE_2D, t_luna);
         mesh.draw();
 
-        //marte
-        glm::mat4 mm_marte=pos_sole*rotation_y(simulated_time*24.0f)*translation(5.5f, 0.0f, 0.0f)*rotation_y(simulated_time*70.0f)*scaling(0.2f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_marte[0][0]);
+        glm::mat4 m_mar=pos_sole*rotation_y(t*35.0f)*translation(6.2f, 0.0f, 0.0f)*rotation_y(t*70.0f)*scaling(0.17f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_mar[0][0]);
         glUniform1i(is_sun_loc, 0);
-        glBindTexture(GL_TEXTURE_2D, t_marte);
+        glBindTexture(GL_TEXTURE_2D, t_mar);
         mesh.draw();
 
-        //giove
-        glm::mat4 mm_giove=pos_sole*rotation_y(simulated_time*10.0f)*translation(7.5f, 0.0f, 0.0f)*rotation_y(simulated_time*150.0f)*scaling(0.7f)*mesh_base_norm;
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_giove[0][0]);
+        glm::mat4 m_gio=pos_sole*rotation_y(t*18.0f)*translation(8.2f, 0.0f, 0.0f)*rotation_y(t*120.0f)*scaling(0.55f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_gio[0][0]);
         glUniform1i(is_sun_loc, 0);
-        glBindTexture(GL_TEXTURE_2D, t_giove);
+        glBindTexture(GL_TEXTURE_2D, t_gio);
+        mesh.draw();
+
+        glm::mat4 m_sat=pos_sole*rotation_y(t*12.0f)*translation(10.5f, 0.0f, 0.0f)*rotation_y(t*100.0f)*scaling(0.45f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_sat[0][0]);
+        glUniform1i(is_sun_loc, 0);
+        glBindTexture(GL_TEXTURE_2D, t_sat);
+        mesh.draw();
+
+        glm::mat4 m_ura=pos_sole*rotation_y(t*8.0f)*translation(12.8f, 0.0f, 0.0f)*rotation_y(t*60.0f)*scaling(0.32f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_ura[0][0]);
+        glUniform1i(is_sun_loc, 0);
+        glBindTexture(GL_TEXTURE_2D, t_ura);
+        mesh.draw();
+
+        glm::mat4 m_net=pos_sole*rotation_y(t*5.0f)*translation(15.0f, 0.0f, 0.0f)*rotation_y(t*50.0f)*scaling(0.3f)*mesh_base_norm;
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, &m_net[0][0]);
+        glUniform1i(is_sun_loc, 0);
+        glBindTexture(GL_TEXTURE_2D, t_net);
         mesh.draw();
     }
 };
 
-//main
+//mainprogramma
 int main(int argc, char** argv) {
-    generaSferaOFF(); 
-    
+    generaSferaOFF();
     Setup s;
     Shaders sh;
-    
-    const char* vs= 
+
+    const char* vs=
         "#version 410 core\n"
         "layout(location=0) in vec3 pos;\n"
         "layout(location=1) in vec3 norm;\n"
@@ -386,14 +362,15 @@ int main(int argc, char** argv) {
         "void main() {\n"
         "    gl_Position=vp*model*vec4(pos, 1.0);\n"
         "    if(is_star==1) {\n"
-        "       gl_PointSize=2.0;\n"
+        "        //dimensionestelle\n"
+        "        gl_PointSize=2.0;\n"
         "    }\n"
         "    v_pos=vec3(model*vec4(pos, 1.0));\n"
         "    v_norm=mat3(transpose(inverse(model)))*norm;\n"
         "    v_local_pos=pos;\n"
         "}";
 
-    const char* fs= 
+    const char* fs=
         "#version 410 core\n"
         "uniform sampler2D tex_sampler;\n"
         "uniform vec3 light_pos;\n"
@@ -407,8 +384,8 @@ int main(int argc, char** argv) {
         "out vec4 c;\n"
         "void main() {\n"
         "    if(is_star==1) {\n"
-        "        //stellebiancogialleluminose\n"
-        "        c=vec4(1.0, 1.0, 0.9, 1.0);\n"
+        "        //stelleluminose\n"
+        "        c=vec4(1.0, 1.0, 0.95, 1.0);\n"
         "    } else if(is_orbit==1) {\n"
         "        c=color_obj;\n"
         "    } else {\n"
@@ -429,25 +406,25 @@ int main(int argc, char** argv) {
         "        }\n"
         "    }\n"
         "}";
-        
+
     sh.compile_attach_link(&vs, &fs);
     sh.use();
-    
     Scene sc("sfera.off", sh, *s.window);
 
     glEnable(GL_DEPTH_TEST);
+    //abilitaformapunti
     glEnable(0x8642);
+
     sf::Clock clk;
-    
     float simulated_time=0.0f;
     float time_scale=1.0f;
     bool is_paused=false;
 
-    std::cout<<"\n[tappa 11] sistema solare completo e stellato avviato!\n";
+    std::cout<<"\n[tappa 12] sistema solare con cielo stellato attivo!\n";
 
     while(s.window->isOpen()) {
         float dt=clk.restart().asSeconds();
-        
+
         while(const std::optional e=s.window->pollEvent()) {
             if(e->is<sf::Event::Closed>()) {
                 return 0;
@@ -455,7 +432,7 @@ int main(int argc, char** argv) {
             if(const auto* r=e->getIf<sf::Event::Resized>()) {
                 glViewport(0, 0, r->size.x, r->size.y);
             }
-            
+
             if(const auto* m=e->getIf<sf::Event::MouseMoved>()) {
                 static float px=m->position.x, py=m->position.y;
                 if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
@@ -482,12 +459,11 @@ int main(int argc, char** argv) {
             simulated_time+=dt*time_scale;
         }
 
-        //sfondospazioprofondo
-        glClearColor(0.01f, 0.01f, 0.03f, 1.0f);
+        glClearColor(0.01f, 0.01f, 0.02f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+
         sc.draw(simulated_time);
-        
+
         s.window->display();
     }
     return 0;

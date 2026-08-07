@@ -138,7 +138,7 @@ int main(int argc, char** argv)
     sh.compile_attach_link(&vs, &fs);
     sh.use();
 
-    Scene sc("./risorse/cubo.off", sh, *s.window);
+    Scene sc("../Risorse/cubo.off", sh, *s.window);
 
     glEnable(GL_DEPTH_TEST);
     sf::Clock clk;

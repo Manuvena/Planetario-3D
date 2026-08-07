@@ -9,7 +9,7 @@
 #include "./include/mesh.hh"
 #include "./include/hotshaders.hh"
 
-//setup
+//impostazionifinestra
 class Setup {
 public:
     sf::Window* window;
@@ -21,12 +21,13 @@ public:
         settings.attributeFlags=sf::ContextSettings::Attribute::Core;
         settings.majorVersion=4;
         settings.minorVersion=1;
-        //aggiornatotitolofinestra
-        window=new sf::Window(sf::VideoMode({800, 800}), "Planetario Tappa 06", sf::Style::Default, sf::State::Windowed, settings);
+        window=new sf::Window(sf::VideoMode({800, 800}), "Planetario Tappa 05", sf::Style::Default, sf::State::Windowed, settings);
         window->setVerticalSyncEnabled(true);
+        
         if(!window->setActive(true)) {
             exit(1);
         }
+        
         gladLoadGL(sf::Context::getFunction);
     }
     ~Setup() {
@@ -34,7 +35,7 @@ public:
     }
 };
 
-//cameragestione
+//impostazionitelecamera
 class Camera {
 public:
     glm::mat4 v, vp;
@@ -61,7 +62,7 @@ public:
     }
 };
 
-//gpumeshcaricamento
+//caricamentomeshgpu
 class GPUMesh {
 public:
     glm::vec3 center;
@@ -98,25 +99,24 @@ public:
     }
 };
 
-//scenacoloriemateriali
+//gestionescenario
 class Scene {
 public:
     Camera cam; 
     GPUMesh mesh; 
     glm::mat4 mesh_base_norm; 
     sf::Window* win;
-    GLint m_loc, vp_loc, color_loc;
+    GLint m_loc, vp_loc;
 
     Scene(std::string f, Shaders& s, sf::Window& w) : mesh(f), win(&w) {
         m_loc=glGetUniformLocation(s.program, "model");
         vp_loc=glGetUniformLocation(s.program, "vp");
-        //cerchiamovariabilenelloshader
-        color_loc=glGetUniformLocation(s.program, "color_obj");
         
+        //normalizzazionemodello
         mesh_base_norm=scaling(1.0f/mesh.extent)*translation(-mesh.center);
 
-        cam.od=15.0f; 
-        cam.fd=2.0f;
+        //allontaniamotelecamera
+        cam.od=8.0f; 
         cam.view_projection();
     }
 
@@ -125,18 +125,16 @@ public:
         cam.view_projection();
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, &cam.vp[0][0]);
 
-        //disegnosolegiallo
+        //disegnosole
         glm::mat4 pos_sole=translation(0.0f, 0.0f, 0.0f);
         glm::mat4 rot_sole=rotation_y(time*20.0f); 
         glm::mat4 scale_sole=scaling(1.0f); 
         glm::mat4 mm_sole=pos_sole*rot_sole*scale_sole*mesh_base_norm;
         
         glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_sole[0][0]);
-        //dipingidigiallo
-        glUniform4f(color_loc, 1.0f, 0.8f, 0.0f, 1.0f); 
         mesh.draw();
 
-        //disegnoterraazzurra
+        //disegnoterra
         glm::mat4 orbita_terra=rotation_y(time*40.0f); 
         glm::mat4 dist_terra=translation(3.5f, 0.0f, 0.0f); 
         glm::mat4 rot_terra=rotation_y(time*90.0f); 
@@ -145,11 +143,9 @@ public:
         glm::mat4 mm_terra=centro_terra*rot_terra*scale_terra*mesh_base_norm;
 
         glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_terra[0][0]);
-        //dipingidiazzurro
-        glUniform4f(color_loc, 0.2f, 0.5f, 1.0f, 1.0f);
         mesh.draw();
 
-        //disegnolunagrigia
+        //disegnoluna
         glm::mat4 orbita_luna=rotation_y(time*120.0f); 
         glm::mat4 dist_luna=translation(0.8f, 0.0f, 0.0f); 
         glm::mat4 scale_luna=scaling(0.1f); 
@@ -157,8 +153,6 @@ public:
         glm::mat4 mm_luna=centro_luna*scale_luna*mesh_base_norm;
 
         glUniformMatrix4fv(m_loc, 1, GL_FALSE, &mm_luna[0][0]);
-        //dipingidigrigio
-        glUniform4f(color_loc, 0.7f, 0.7f, 0.7f, 1.0f);
         mesh.draw();
     }
 };
@@ -168,18 +162,19 @@ int main(int argc, char** argv) {
     Setup s;
     Shaders sh;
     
+    //shaders
     const char* vs="#version 410 core\n layout(location=0) in vec3 pos; uniform mat4 model; uniform mat4 vp; void main() { gl_Position=vp*model*vec4(pos, 1.0); }";
-    const char* fs="#version 410 core\n uniform vec4 color_obj; out vec4 c; void main() { c=color_obj; }"; 
+    const char* fs="#version 410 core\n out vec4 c; void main() { c=vec4(0.2, 0.7, 0.5, 1.0); }";
     
     sh.compile_attach_link(&vs, &fs); 
     sh.use();
 
-    //usiamopercorsorelativo
-    Scene sc("cubo.off", sh, *s.window);
+    Scene sc("../Risorse/cubo.off", sh, *s.window);
 
     glEnable(GL_DEPTH_TEST);
     sf::Clock clk;
     
+    //cicloprincipale
     while(s.window->isOpen()) {
         while(const std::optional e=s.window->pollEvent()) {
             if(e->is<sf::Event::Closed>()) {
@@ -198,6 +193,7 @@ int main(int argc, char** argv) {
             }
         }
         
+        //puliziaschermo
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
